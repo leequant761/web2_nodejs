@@ -3,7 +3,8 @@ var fs = require('fs');
 var url = require('url'); // url 모듈 불러오기
 var qs = require('querystring')
 
-function templateHTML(title, list, body){
+
+function templateHTML(title, list, body, control){
     return `
     <!doctype html>
     <html>
@@ -14,7 +15,7 @@ function templateHTML(title, list, body){
     <body>
       <h1><a href="/">WEB</a></h1>
       ${list}
-      <a href="/create">create</a>
+      ${control}
       ${body}
     </body>
     </html>
@@ -25,8 +26,6 @@ var app = http.createServer(function(request, response){ // 웹브라우저가 �
     var _url = request.url;
     var queryData = url.parse(_url, true).query;
     var pathname = url.parse(_url, true).pathname;
-    console.log(pathname)
-    // 만약 path를 입력을 안했다면
     fs.readdir('./data', function(error, file_list){
         var list = '<ul>'
         var i = 0;
@@ -35,11 +34,14 @@ var app = http.createServer(function(request, response){ // 웹브라우저가 �
             i = i + 1;
         }
         list = list + '</ul>'
+        // 만약 path를 입력을 안했다면
         if(pathname === '/'){
             if(queryData.id === undefined){
                     var title = 'Welcome';
                     var description = 'Hello, Node.js'
-                    var template = templateHTML(title, list, `<h2>${title}</h2>${description}`);
+                    var template = templateHTML(title, list, 
+                                                `<h2>${title}</h2>${description}`,
+                                                `<a href="/create">create</a>`);
                     response.writeHead(200); // 서버가 브라우저에게 200이란 숫자 파일을 성공적으로 전송했다
                     response.end(template)
 
@@ -47,7 +49,9 @@ var app = http.createServer(function(request, response){ // 웹브라우저가 �
             } else{
                 fs.readFile(`data/${queryData.id}`, 'utf-8', function(err, description){
                     var title = queryData.id;
-                    var template = templateHTML(title, list, `<h2>${title}</h2>${description}`);
+                    var template = templateHTML(title, list, 
+                                                `<h2>${title}</h2>${description}`,
+                                                `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`);
 
                     response.writeHead(200); // 서버가 브라우저에게 200이란 숫자 파일을 성공적으로 전송했다
                     response.end(template)
@@ -56,18 +60,20 @@ var app = http.createServer(function(request, response){ // 웹브라우저가 �
         } else if(pathname === '/create'){
             var title = 'WEB - create';
             var description = 'Hello, Node.js'
-            var template = templateHTML(title, list, `
-            <form action="http://localhost:3000/create_process" method='post'>
-                <p><input type="text" name='title' placeholder='title'></p> 
+            var template = templateHTML(title, list, 
+                                        `<form action="/create_process" method='post'>
+                                        <p><input type="text" name='title' placeholder='title'></p> 
 
-                <p>
-                    <textarea name='description' placeholder='description'></textarea>
-                </p>
+                                        <p>
+                                            <textarea name='description' placeholder='description'></textarea>
+                                        </p>
 
-                <p>
-                    <input type="submit">
-                </p>
-            </form>`);
+                                        <p>
+                                            <input type="submit">
+                                        </p>
+                                        </form>`,
+                                        ``
+                                        );
             response.writeHead(200); // 서버가 브라우저에게 200이란 숫자 파일을 성공적으로 전송했다
             response.end(template)
         } else if(pathname ==='/create_process'){
@@ -84,10 +90,47 @@ var app = http.createServer(function(request, response){ // 웹브라우저가 �
                     response.end()
                 });
             });
-        }
-        else{ // path를 입력했다면
+        } else if(pathname === '/update'){
+            fs.readFile(`data/${queryData.id}`, 'utf-8', function(err, description){
+                var title = queryData.id;
+                var template = templateHTML(title, list, 
+                                            `<form action="/update_process" method='post'>
+                                            <input type="hidden" name="id" value="${title}">
+                                            <p><input type="text" name="title" placeholder="title" value="${title}"></p>
+
+                                            <p>
+                                                <textarea name='description'>${description}</textarea>
+                                            </p>
+
+                                            <p>
+                                                <input type="submit">
+                                            </p>
+                                            </form>`,
+                                            `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`);
+
+                response.writeHead(200); // 서버가 브라우저에게 200이란 숫자 파일을 성공적으로 전송했다
+                response.end(template)
+            });
+        } else if(pathname === '/update_process'){
+            var body = '';
+            request.on('data', function(data){
+                body = body + data;
+            });
+            request.on('end', function(){
+                var post = qs.parse(body);
+                var id = post.id;
+                var title = post.title;
+                var description = post.description;
+                fs.rename(`data/${id}`, `data/${title}`, function(err){
+                    fs.writeFile(`data/${title}`, description, 'utf8', function(err){
+                        response.writeHead(302, {Location: `/?id=${title}`});
+                        response.end()
+                    });
+                });
+            });
+        } else{ // path를 입력했다면
             response.writeHead(404); // 반대의 경우 서버가 404란 숫자를 줌
-            response.end('Not found')
+            response.end('Not found');
         }
     });
     // response.end(fs.readFileSync(__dirname + _url)); // _url에서 입력한 파일을 읽어서 사용자에게 준다
