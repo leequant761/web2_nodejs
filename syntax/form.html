@@ -1,0 +1,12 @@
+<!-- <form action="http://localhost:3000/process_create">  사용자가 submit 버튼을 눌렀을 떄 action이 가르키는 서버로 쿼리스트링을 전송; 하지만 URL로 보내는 방식 구림-->
+<form action="http://localhost:3000/process_create" method='post'> <!-- 은밀한 전송 방식-->
+    <p><input type="text" name='title'></p> <!-- 이름을 적어야 보냈을 떄 구분이 되니깐 -->
+
+    <p>
+        <textarea name='description'></textarea>
+    </p>
+
+    <p>
+        <input type="submit">
+    </p>
+</form>
