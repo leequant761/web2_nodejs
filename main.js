@@ -51,7 +51,12 @@ var app = http.createServer(function(request, response){ // 웹브라우저가 �
                     var title = queryData.id;
                     var template = templateHTML(title, list, 
                                                 `<h2>${title}</h2>${description}`,
-                                                `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`);
+                                                `<a href="/create">create</a> 
+                                                 <a href="/update?id=${title}">update</a>
+                                                 <form action="delete_process" method="post">
+                                                    <input type='hidden' name='delete' value="${title}">
+                                                    <input type="submit" value="delete">
+                                                 </form>`);
 
                     response.writeHead(200); // 서버가 브라우저에게 200이란 숫자 파일을 성공적으로 전송했다
                     response.end(template)
