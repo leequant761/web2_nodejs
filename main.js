@@ -3,35 +3,8 @@ var fs = require('fs');
 var url = require('url'); // url 모듈 불러오기
 var qs = require('querystring')
 
-var template = {
-    html: function(title, list, body, control){
-        return `
-        <!doctype html>
-        <html>
-        <head>
-          <title>WEB1 - ${title}</title>
-          <meta charset="utf-8">
-        </head>
-        <body>
-          <h1><a href="/">WEB</a></h1>
-          ${list}
-          ${control}
-          ${body}
-        </body>
-        </html>
-        `;
-    },
-    list: function(file_list){
-        var list = '<ul>'
-        var i = 0;
-        while(i < file_list.length){
-            list = list + `<li><a href='/?id=${file_list[i]}'>${file_list[i]}</a></li>`
-            i = i + 1;
-        }
-        list = list + '</ul>';
-        return list;
-    }
-};
+var template = require('./lib/template.js');
+
 
 
 var app = http.createServer(function(request, response){ // 웹브라우저가 접속할 때 마다 createServer의 콜백함수를 호출; request 는 웹브라우저가 요청할 때 보낸 정보; response는 응답할 때 웹서버가 웹브라우저에게 보낼 정보들
